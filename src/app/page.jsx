@@ -14,7 +14,7 @@ export default function Home() {
       <nav className="bg-blue-600 text-white shadow-lg">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
           <Link href="/" className="text-2xl font-bold tracking-tight">
-            AIscribe
+            NextPen
           </Link>
           <div className="flex items-center space-x-4">
             <Link href="/" className="hover:text-blue-200 transition">

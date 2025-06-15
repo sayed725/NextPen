@@ -1,41 +1,63 @@
-import connectDB, { Post } from '@/lib/mongodb';
-import { auth } from '@clerk/nextjs/server';
-import { generateSummary } from '@/lib/gemini';
+// app/api/posts/[id]/route.js
+import { connectDB } from '@/lib/db';
+import { getAuth } from '@clerk/nextjs/server';
+import { NextResponse } from 'next/server';
+import { ObjectId } from 'mongodb';
 
-export async function GET(req, { params }) {
-  await connectDB();
-  const post = await Post.findById(params.id);
-  if (!post) return new Response('Not Found', { status: 404 });
-  return new Response(JSON.stringify(post), { status: 200 });
+export async function GET(request, { params }) {
+  try {
+    const { id } = params;
+    const db = await connectDB();
+    const post = await db.collection('posts').findOne({ _id: new ObjectId(id) });
+    if (!post) {
+      return NextResponse.json({ error: 'Post not found' }, { status: 404 });
+    }
+    return NextResponse.json(post);
+  } catch (error) {
+    return NextResponse.json({ error: 'Failed to fetch post' }, { status: 500 });
+  }
 }
 
-export async function PUT(req, { params }) {
-  const { userId } = auth();
-  const { title, content, tags } = await req.json();
-  await connectDB();
-  
-  const post = await Post.findById(params.id);
-  if (!post) return new Response('Not Found', { status: 404 });
-  if (post.authorId !== userId) return new Response('Unauthorized', { status: 401 });
-  
-  const summary = await generateSummary(content);
-  const updatedPost = await Post.findByIdAndUpdate(
-    params.id,
-    { title, content, tags, summary },
-    { new: true }
-  );
-  
-  return new Response(JSON.stringify(updatedPost), { status: 200 });
+export async function PUT(request, { params }) {
+  try {
+    const { userId } = getAuth(request);
+    if (!userId) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const { id } = params;
+    const { title, content, tags, summary } = await request.json();
+    const db = await connectDB();
+    const result = await db.collection('posts').updateOne(
+      { _id: new ObjectId(id), authorId: userId },
+      { $set: { title, content, tags: tags || [], summary: summary || '' } }
+    );
+
+    if (result.matchedCount === 0) {
+      return NextResponse.json({ error: 'Post not found or unauthorized' }, { status: 404 });
+    }
+    return NextResponse.json({ message: 'Post updated' });
+  } catch (error) {
+    return NextResponse.json({ error: 'Failed to update post' }, { status: 500 });
+  }
 }
 
-export async function DELETE(req, { params }) {
-  const { userId } = auth();
-  await connectDB();
-  
-  const post = await Post.findById(params.id);
-  if (!post) return new Response('Not Found', { status: 404 });
-  if (post.authorId !== userId) return new Response('Unauthorized', { status: 401 });
-  
-  await Post.findByIdAndDelete(params.id);
-  return new Response(null, { status: 204 });
+export async function DELETE(request, { params }) {
+  try {
+    const { userId } = getAuth(request);
+    if (!userId) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const { id } = params;
+    const db = await connectDB();
+    const result = await db.collection('posts').deleteOne({ _id: new ObjectId(id), authorId: userId });
+
+    if (result.deletedCount === 0) {
+      return NextResponse.json({ error: 'Post not found or unauthorized' }, { status: 404 });
+    }
+    return NextResponse.json({ message: 'Post deleted' });
+  } catch (error) {
+    return NextResponse.json({ error: 'Failed to delete post' }, { status: 500 });
+  }
 }

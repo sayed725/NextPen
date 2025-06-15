@@ -1,8 +1,9 @@
+// components/CreatePost.js
 'use client';
 import { useState } from 'react';
 import { useCreatePostMutation } from '@/redux/features/postsApi';
 import { useRouter } from 'next/navigation';
-import { SignedIn, useUser,  } from '@clerk/nextjs';
+import { SignedIn, useUser } from '@clerk/nextjs';
 
 export default function CreatePost() {
   const [title, setTitle] = useState('');
@@ -10,9 +11,7 @@ export default function CreatePost() {
   const [tags, setTags] = useState('');
   const [createPost, { isLoading, error }] = useCreatePostMutation();
   const router = useRouter();
-  const { isSignedIn } = useUser();
-
-  // console.log(isSignedIn)
+  const { isSignedIn, user } = useUser();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -21,9 +20,16 @@ export default function CreatePost() {
       router.push('/sign-in');
       return;
     }
+
     try {
-      console.log('Creating post with:', { title, content, tags }); // Debug log
-      await createPost({ title, content, tags: tags.split(',').map(tag => tag.trim()) }).unwrap();
+      const postData = {
+        title,
+        content,
+        tags: tags ? tags.split(',').map((tag) => tag.trim()).filter((tag) => tag) : [],
+        summary: content.slice(0, 100), // Generate summary from content
+      };
+      console.log('Creating post with:', postData);
+      await createPost(postData).unwrap();
       router.push('/');
     } catch (err) {
       console.error('Failed to create post:', err);
@@ -31,14 +37,14 @@ export default function CreatePost() {
   };
 
   return (
-    // <SignedIn>
+    <SignedIn>
       <div className="container mx-auto p-4">
         <h1 className="text-2xl font-bold mb-4">Create Post</h1>
         {error && (
           <p className="text-red-500 mb-4">
-            {error.status === 401
+            {error?.status === 401
               ? 'Please sign in to create a post.'
-              : 'Failed to create post. Please try again.'}
+              : error?.data?.error || 'Failed to create post. Please try again.'}
           </p>
         )}
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -80,6 +86,6 @@ export default function CreatePost() {
           </button>
         </form>
       </div>
-    // </SignedIn>
+    </SignedIn>
   );
 }

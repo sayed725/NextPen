@@ -1,52 +1,45 @@
-import connectDB, { Post } from '@/lib/mongodb';
-
-
-import { auth } from '@clerk/nextjs/server';
+// app/api/posts/route.js
+import { connectDB } from '@/lib/db';
+import { getAuth } from '@clerk/nextjs/server';
+import { NextResponse } from 'next/server';
 
 export async function GET() {
   try {
-    await connectDB();
-    const posts = await Post.find().sort({ createdAt: -1 });
-    return new Response(JSON.stringify(posts), {
-      status: 200,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    const db = await connectDB();
+    const posts = await db.collection('posts').find({}).toArray();
+    return NextResponse.json(posts);
   } catch (error) {
-    console.error('GET /api/posts error:', error.message);
-    return new Response(JSON.stringify({ error: 'Internal Server Error' }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    return NextResponse.json({ error: 'Failed to fetch posts' }, { status: 500 });
   }
 }
 
-export async function POST(req) {
+export async function POST(request) {
   try {
-    const { userId } = auth();
-
-    console.log('POST /api/posts auth:', { userId }); // Debug log
+    const { userId } = getAuth(request);
     if (!userId) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-        status: 401,
-        headers: { 'Content-Type': 'application/json' },
-      });
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-    const { title, content, tags } = await req.json();
-    await connectDB();
-    const summary = await generateSummary(content);
-    const post = new Post({ title, content, tags, summary, 
-      authorId: userId
-     });
-    await post.save();
-    return new Response(JSON.stringify(post), {
-      status: 201,
-      headers: { 'Content-Type': 'application/json' },
-    });
+
+    const { title, content, tags, summary } = await request.json();
+    if (!title || !content) {
+      return NextResponse.json({ error: 'Title and content are required' }, { status: 400 });
+    }
+
+    const db = await connectDB();
+    const post = {
+      title,
+      content,
+      tags: tags ? tags.filter((tag) => tag) : [],
+      summary: summary || '',
+      authorId: userId,
+      createdAt: new Date(),
+      comments: [],
+    };
+
+    const result = await db.collection('posts').insertOne(post);
+    return NextResponse.json({ ...post, _id: result.insertedId }, { status: 201 });
   } catch (error) {
-    console.error('POST /api/posts error:', error.message);
-    return new Response(JSON.stringify({ error: 'Internal Server Error' }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    console.error('Error creating post:', error);
+    return NextResponse.json({ error: 'Failed to create post' }, { status: 500 });
   }
 }

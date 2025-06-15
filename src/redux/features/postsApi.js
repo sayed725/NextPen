@@ -1,3 +1,4 @@
+// redux/features/postsApi.js
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 
 export const postsApi = createApi({
@@ -9,16 +10,16 @@ export const postsApi = createApi({
   tagTypes: ['Posts'],
   endpoints: (builder) => ({
     getPosts: builder.query({
-      query: () => 'posts',
+      query: () => '/posts',
       providesTags: ['Posts'],
     }),
     getPost: builder.query({
-      query: (id) => `posts/${id}`,
+      query: (id) => `/posts/${id}`,
       providesTags: ['Posts'],
     }),
     createPost: builder.mutation({
       query: (post) => ({
-        url: 'posts',
+        url: '/posts',
         method: 'POST',
         body: post,
       }),
@@ -26,7 +27,7 @@ export const postsApi = createApi({
     }),
     updatePost: builder.mutation({
       query: ({ id, ...post }) => ({
-        url: `posts/${id}`,
+        url: `/posts/${id}`,
         method: 'PUT',
         body: post,
       }),
@@ -34,16 +35,16 @@ export const postsApi = createApi({
     }),
     deletePost: builder.mutation({
       query: (id) => ({
-        url: `posts/${id}`,
+        url: `/posts/${id}`,
         method: 'DELETE',
       }),
       invalidatesTags: ['Posts'],
     }),
     addComment: builder.mutation({
       query: ({ id, comment }) => ({
-        url: `posts/${id}/comments`,
+        url: `/posts/${id}/comments`,
         method: 'POST',
-        body: comment,
+        body: { content: comment },
       }),
       invalidatesTags: ['Posts'],
     }),
