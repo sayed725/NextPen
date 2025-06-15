@@ -3,45 +3,15 @@ import { useGetPostsQuery } from '@/redux/features/postsApi';
 import { SignedIn, SignedOut, SignOutButton, useUser } from '@clerk/nextjs';
 import Link from 'next/link';
 import Image from 'next/image';
+import Navbar from '@/components/shared/navbar';
 
 export default function Home() {
   const { data: posts, isLoading, error } = useGetPostsQuery();
   const { user } = useUser();
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      {/* Navbar */}
-      <nav className="bg-blue-600 text-white shadow-lg">
-        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <Link href="/" className="text-2xl font-bold tracking-tight">
-            NextPen
-          </Link>
-          <div className="flex items-center space-x-4">
-            <Link href="/" className="hover:text-blue-200 transition">
-              Home
-            </Link>
-            <SignedIn>
-              <Link href="/posts/create" className="hover:text-blue-200 transition">
-                Create Post
-              </Link>
-              <span className="text-sm">Welcome, {user?.firstName}</span>
-              <SignOutButton>
-                <button className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded transition">
-                  Sign Out
-                </button>
-              </SignOutButton>
-            </SignedIn>
-            <SignedOut>
-              <Link href="/sign-in" className="hover:text-blue-200 transition">
-                Sign In
-              </Link>
-              <Link href="/sign-up" className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded transition">
-                Sign Up
-              </Link>
-            </SignedOut>
-          </div>
-        </div>
-      </nav>
+    <div className="min-h-screen  bg-gray-100">
+    
 
       {/* Main Content */}
       <div className="container mx-auto px-4 py-8 grid grid-cols-1 md:grid-cols-4 gap-6">

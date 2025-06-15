@@ -5,6 +5,7 @@ import "./globals.css";
 import { ClerkProvider } from '@clerk/nextjs';
 import { Provider } from 'react-redux';
 import { store } from '@/redux/store';
+import Navbar from "@/components/shared/navbar";
 // import '@/styles/globals.css';
 
 const geistSans = Geist({
@@ -27,7 +28,10 @@ export default function RootLayout({ children }) {
     <ClerkProvider>
       <Provider store={store}>
         <html lang="en">
-          <body>{children}</body>
+         <body className="bg-gray-100">
+            <Navbar />
+            <main className="max-w-7xl mx-auto">{children}</main>
+          </body>
         </html>
       </Provider>
     </ClerkProvider>
