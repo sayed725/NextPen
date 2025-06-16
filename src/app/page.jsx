@@ -174,7 +174,7 @@ export default function Home() {
                   <div className="mt-2 flex gap-4 text-sm text-gray-700">
                     <span>Upvotes: {post.upvote}</span>
                     <span>Downvotes: {post.downvote}</span>
-                    <span>Net Score: {post.upvote - post.downvote}</span>
+                    
                   </div>
                 </div>
               ))}
