@@ -1,5 +1,3 @@
-
-// lib/db.js
 import { MongoClient } from 'mongodb';
 
 let dbInstance = null;
@@ -39,7 +37,13 @@ const postSchema = {
         tags: { bsonType: 'array', items: { bsonType: 'string' } },
         summary: { bsonType: 'string' },
         authorId: { bsonType: 'string' },
+        authorName: { bsonType: 'string' },
+        authorImage: { bsonType: 'string' },
+        authorEmail: { bsonType: 'string' },
+        image: { bsonType: 'string' },
         createdAt: { bsonType: 'date' },
+        upvote: { bsonType: 'int', minimum: 0, default: 0 },
+        downvote: { bsonType: 'int', minimum: 0, default: 0 },
         comments: {
           bsonType: 'array',
           items: {
@@ -74,6 +78,8 @@ const initializePostCollection = async (db) => {
 
     await db.collection('posts').createIndex({ authorId: 1 });
     await db.collection('posts').createIndex({ tags: 1 });
+    await db.collection('posts').createIndex({ upvote: 1 });
+    await db.collection('posts').createIndex({ downvote: 1 });
   } catch (error) {
     console.error('Error initializing posts collection:', error);
   }

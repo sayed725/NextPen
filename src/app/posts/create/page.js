@@ -1,4 +1,3 @@
-// components/CreatePost.js
 'use client';
 import { useState } from 'react';
 import { useCreatePostMutation } from '@/redux/features/postsApi';
@@ -9,9 +8,23 @@ export default function CreatePost() {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [tags, setTags] = useState('');
+  const [image, setImage] = useState(null);
   const [createPost, { isLoading, error }] = useCreatePostMutation();
   const router = useRouter();
   const { isSignedIn, user } = useUser();
+
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImage(reader.result); // Store base64 string
+      };
+      reader.readAsDataURL(file);
+    } else {
+      setImage(null);
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -26,7 +39,13 @@ export default function CreatePost() {
         title,
         content,
         tags: tags ? tags.split(',').map((tag) => tag.trim()).filter((tag) => tag) : [],
-        summary: content.slice(0, 100), // Generate summary from content
+        summary: content.slice(0, 100),
+        authorId: user.id,
+        authorName: user.fullName || `${user.firstName} ${user.lastName}`.trim() || 'Anonymous',
+        authorImage: user.imageUrl || '',
+        authorEmail: user.primaryEmailAddress?.emailAddress || '',
+        createdAt: new Date(),
+        image: image || '', // Optional image field
       };
       console.log('Creating post with:', postData);
       await createPost(postData).unwrap();
@@ -74,6 +93,15 @@ export default function CreatePost() {
               type="text"
               value={tags}
               onChange={(e) => setTags(e.target.value)}
+              className="w-full border p-2 rounded"
+            />
+          </div>
+          <div>
+            <label className="block">Image (optional)</label>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleImageChange}
               className="w-full border p-2 rounded"
             />
           </div>

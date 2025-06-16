@@ -1,4 +1,3 @@
-// app/api/posts/route.js
 import { connectDB } from '@/lib/db';
 import { getAuth } from '@clerk/nextjs/server';
 import { NextResponse } from 'next/server';
@@ -20,7 +19,7 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { title, content, tags, summary } = await request.json();
+    const { title, content, tags, summary, authorName, authorImage, authorEmail, image } = await request.json();
     if (!title || !content) {
       return NextResponse.json({ error: 'Title and content are required' }, { status: 400 });
     }
@@ -32,7 +31,13 @@ export async function POST(request) {
       tags: tags ? tags.filter((tag) => tag) : [],
       summary: summary || '',
       authorId: userId,
+      authorName: authorName || '',
+      authorImage: authorImage || '',
+      authorEmail: authorEmail || '',
+      image: image || '',
       createdAt: new Date(),
+      upvote: 0,
+      downvote: 0,
       comments: [],
     };
 
