@@ -64,7 +64,7 @@ export default function Home() {
             <CardContent className="flex flex-col space-y-4">
               <div className="relative flex flex-col sm:flex-row gap-4 sm:gap-2 items-center">
                 <div className="relative w-full">
-                  <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-primary text-xl" />
+                  <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-primary" />
                   <Input
                     type="text"
                     name="search"
