@@ -6,7 +6,7 @@ import Navbar from '@/components/shared/navbar';
 import Add2 from '@/components/advertisements/Add2';
 import Add from '@/components/advertisements/Add';
 import { useState } from 'react';
-import { FaSearch } from 'react-icons/fa';
+import { FaSearch, FaRegCommentDots, FaShareAlt } from 'react-icons/fa';
 import { LuArrowUpDown } from 'react-icons/lu';
 import { BiReset } from 'react-icons/bi';
 import { Button } from '@/components/ui/button';
@@ -14,12 +14,14 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import moment from 'moment';
 
 export default function Home() {
   const { data: posts, isLoading, error } = useGetPostsQuery();
   const { user } = useUser();
   const [search, setSearch] = useState('');
   const [sort, setSort] = useState('');
+   const [expanded, setExpanded] = useState(false);
 
   const resetAll = () => {
     setSearch('');
@@ -113,7 +115,7 @@ export default function Home() {
             </CardContent>
           </Card>
 
-          <h1 className="text-3xl font-bold text-center mb-6">Latest Posts</h1>
+          <h1 className="text-3xl font-bold text-center mb-5">Latest Posts</h1>
           {isLoading ? (
             <Card className="text-center p-5">
               <CardContent>
@@ -134,62 +136,108 @@ export default function Home() {
             </Card>
           ) : (
             <div className="space-y-6">
-              {sortedPosts.map((post) => (
-                <Card key={post._id} className="p-5 hover:shadow-lg transition-shadow">
-                  <CardHeader>
-                    <CardTitle>
-                      <Link
-                        href={`/posts/${post._id}`}
-                        className="text-xl font-semibold text-primary hover:text-primary/80 transition"
-                      >
-                        {post.title}
-                      </Link>
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    {post.image && (
-                      <img
-                        src={post.image}
-                        alt={post.title}
-                        width={300}
-                        height={200}
-                        className="rounded-md object-cover mb-4"
-                      />
-                    )}
-                    <p className="text-muted-foreground mb-4">{post.summary}</p>
-                    <div className="flex flex-wrap gap-2 mb-4">
-                      {post.tags.map((tag, index) => (
-                        <Badge key={index} variant="secondary">
-                          {tag}
-                        </Badge>
-                      ))}
-                    </div>
-                    <div className="flex items-center gap-4">
-                      <div className="flex items-center gap-2">
-                        <Avatar>
-                          <AvatarImage
-                            src={post.authorImage}
-                            alt={post.authorName || 'Author'}
-                          />
-                          <AvatarFallback>
-                            {post.authorName?.charAt(0) || 'A'}
-                          </AvatarFallback>
-                        </Avatar>
-                        <p className="text-sm text-muted-foreground">
-                          By {post.authorName || 'Anonymous'}
+              {sortedPosts.map((post) => {
+               
+                // Mock comment count since we don't have a comments API
+                const comments = 0; // Replace with actual comment count if available
+
+                return (
+                  <Link key={post._id} href={`/posts/${post._id}`}>
+                    <Card className="bg-white mb-5 dark:bg-[#20293d] dark:text-white shadow-lg rounded-lg p-5 hover:shadow-xl transition-shadow">
+                      <CardContent className="p-0">
+                        {/* Author Section */}
+                        <div className="flex items-center space-x-3">
+                          <Avatar>
+                            <AvatarImage
+                              src={post.authorImage}
+                              alt={post.authorName || 'Author'}
+                            />
+                            <AvatarFallback>
+                              {post.authorName?.charAt(0) || 'A'}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <h3 className="font-semibold">{post.authorName || 'Anonymous'}</h3>
+                            <p className="text-gray-500 dark:text-gray-300 text-sm">
+                              {post.createdAt && moment(post.createdAt).fromNow()}
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* Post Content */}
+                        <p className="mt-3 text-xl font-semibold">{post.title}</p>
+                        <p className="mt-3 text-gray-700 dark:text-white">
+                          {expanded ? post.summary : `${post.summary.slice(0, 200)}...`}
+                          {post.tags.map((tag, index) => (
+                            <span key={index} className="ml-2 font-semibold">
+                              #{tag}
+                            </span>
+                          ))}
+                          {!expanded && post.summary.length > 200 && (
+                            <button
+                              onClick={(e) => {
+                                e.preventDefault();
+                                setExpanded(true);
+                              }}
+                              className="text-blue-500 ml-2"
+                            >
+                              Read More
+                            </button>
+                          )}
                         </p>
-                      </div>
-                      <p className="text-sm text-muted-foreground">
-                        Posted on {new Date(post.createdAt).toLocaleDateString()}
-                      </p>
-                    </div>
-                    <div className="mt-4 flex gap-4 text-sm text-muted-foreground">
-                      <span>UpVotes: {post.upvote}</span>
-                      <span>DownVotes: {post.downvote}</span>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+
+                        {/* Post Image */}
+                        {post.image && (
+                          <div className="mt-4">
+                            <img
+                              src={post.image}
+                              alt={post.title}
+                              className="w-full h-[350px] object-cover rounded-lg"
+                            />
+                          </div>
+                        )}
+
+                        {/* Likes, Comments, and Share */}
+                        <div className="flex items-center justify-between mt-4 text-gray-600 dark:text-gray-400">
+                          <div className="flex items-center space-x-2">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="flex gap-2 dark:bg-[#20293d] dark:text-white dark:hover:text-blue-500 hover:text-blue-500"
+                            >
+                              <span>UpVote · {post.upvote}</span>
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="flex gap-2 dark:bg-[#20293d] dark:text-white dark:hover:text-blue-500 hover:text-blue-500"
+                            >
+                              <span>DownVote · {post.downvote}</span>
+                            </Button>
+                          </div>
+                          <div className="flex items-center space-x-4">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="flex items-center space-x-1 dark:hover:text-blue-500 hover:text-blue-500"
+                            >
+                              <FaRegCommentDots className="text-xl" />
+                              <span>{comments}</span>
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="flex items-center space-x-1 dark:hover:text-blue-500 hover:text-blue-500"
+                            >
+                              <FaShareAlt className="text-xl" />
+                            </Button>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </Link>
+                );
+              })}
             </div>
           )}
         </main>
