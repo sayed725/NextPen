@@ -2,7 +2,6 @@
 import { useGetPostsQuery } from '@/redux/features/postsApi';
 import { SignedIn, SignedOut, SignOutButton, useUser } from '@clerk/nextjs';
 import Link from 'next/link';
-// import Image from 'next/image';
 import Navbar from '@/components/shared/navbar';
 import Add2 from '@/components/advertisements/Add2';
 import Add from '@/components/advertisements/Add';
@@ -10,6 +9,11 @@ import { useState } from 'react';
 import { FaSearch } from 'react-icons/fa';
 import { LuArrowUpDown } from 'react-icons/lu';
 import { BiReset } from 'react-icons/bi';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 export default function Home() {
   const { data: posts, isLoading, error } = useGetPostsQuery();
@@ -44,146 +48,154 @@ export default function Home() {
   return (
     <div className="min-h-screen mx-auto">
       {/* Main Content */}
-      <div className="py-8 mx-auto lg:grid sm:grid-cols-5 gap-6">
+      <div className="py-8 mx-auto lg:grid lg:grid-cols-5 gap-6 px-4">
         {/* Left Sidebar - Advertisement */}
-        <aside className="hidden lg:block">
+        <aside className="hidden lg:block lg:col-span-1">
           <Add2 />
           <Add2 />
         </aside>
 
         {/* Center - Blog Posts */}
-        <main className="md:col-span-3">
+        <main className="lg:col-span-3">
           {/* Search and Sort Functionality */}
-          <div className="flex mb-6 flex-col bg-white p-5 rounded-md items-center justify-center text-white dark:bg-[#20293d]">
-            <div className="relative w-full flex flex-col sm:flex-row gap-5 sm:gap-2 justify-center items-center">
-              <input
-                type="text"
-                name="search"
-                onChange={(e) => setSearch(e.target.value)}
-                value={search}
-                placeholder="Search by tags without #..."
-                className="w-full bg-[#f5f5f5] dark:bg-[#060817] dark:text-white text-black rounded-lg py-3 px-5 pl-12 outline-none focus:ring-2 focus:ring-blue-500"
-              />
-              <FaSearch className="absolute left-4 top-3 text-blue-500 text-xl" />
-              <div className="flex sm:flex-none gap-5 sm:gap-2">
-                {/* Popularity sort button */}
-                <button
-                  onClick={() => setSort(sort === 'popularity' ? '' : 'popularity')}
-                  className="text-black btn-sm sm:btn flex justify-center dark:bg-[#20293d] dark:text-white dark:hover:bg-[#005694] items-center gap-2 rounded-lg hover:bg-[#005694] hover:text-white"
-                >
-                  <LuArrowUpDown /> <span>Popularity</span>
-                </button>
-                {/* Reset button */}
-                <button
-                  onClick={resetAll}
-                  className="text-black btn-sm sm:btn flex justify-center items-center dark:bg-[#20293d] dark:text-white dark:hover:bg-[#005694] gap-2 rounded-lg hover:bg-[#005694] hover:text-white"
-                >
-                  <BiReset /> <span>Reset</span>
-                </button>
+          <Card className="mb-6">
+            <CardContent className="flex flex-col space-y-4">
+              <div className="relative flex flex-col sm:flex-row gap-4 sm:gap-2 items-center">
+                <div className="relative w-full">
+                  <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-primary text-xl" />
+                  <Input
+                    type="text"
+                    name="search"
+                    onChange={(e) => setSearch(e.target.value)}
+                    value={search}
+                    placeholder="Search by tags without #..."
+                    className="pl-10"
+                  />
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    onClick={() => setSort(sort === 'popularity' ? '' : 'popularity')}
+                    variant={sort === 'popularity' ? 'default' : 'outline'}
+                  >
+                    <LuArrowUpDown className="mr-2 h-4 w-4" />
+                    Popularity
+                  </Button>
+                  <Button onClick={resetAll} variant="outline">
+                    <BiReset className="mr-2 h-4 w-4" />
+                    Reset
+                  </Button>
+                </div>
               </div>
-            </div>
-            <div className="mt-4 text-sm flex">
-              <span className="text-gray-700 dark:text-white">Most Popular tags: </span>
-              <button
-                onClick={() => setSearch('smartphone')}
-                className="text-blue-400 hover:underline mx-1"
-              >
-                #smartphone
-              </button>
-              <button
-                onClick={() => setSearch('macbook')}
-                className="text-blue-400 hover:underline mx-1"
-              >
-                #macBook
-              </button>
-              <button
-                onClick={() => setSearch('bitcoin')}
-                className="text-blue-400 hover:underline mx-1"
-              >
-                #bitCoin
-              </button>
-            </div>
-          </div>
+              <div className="flex flex-wrap gap-2 justify-center text-sm">
+                <span className="text-muted-foreground">Popular tags:</span>
+                <Button
+                  variant="link"
+                  onClick={() => setSearch('smartphone')}
+                  className="text-primary p-0 h-auto"
+                >
+                  #smartphone
+                </Button>
+                <Button
+                  variant="link"
+                  onClick={() => setSearch('macbook')}
+                  className="text-primary p-0 h-auto"
+                >
+                  #macBook
+                </Button>
+                <Button
+                  variant="link"
+                  onClick={() => setSearch('bitcoin')}
+                  className="text-primary p-0 h-auto"
+                >
+                  #bitCoin
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
 
-          <h1 className="text-3xl font-bold text-gray-800 mb-6 text-center">Latest Posts</h1>
+          <h1 className="text-3xl font-bold text-center mb-6">Latest Posts</h1>
           {isLoading ? (
-            <div className="text-center">
-              <p className="text-gray-600">Loading posts...</p>
-            </div>
+            <Card className="text-center p-5">
+              <CardContent>
+                <p className="text-muted-foreground">Loading posts...</p>
+              </CardContent>
+            </Card>
           ) : error ? (
-            <div className="text-center">
-              <p className="text-red-500">Failed to load posts. Please try again later.</p>
-            </div>
+            <Card className="text-center p-5">
+              <CardContent>
+                <p className="text-destructive">Failed to load posts. Please try again later.</p>
+              </CardContent>
+            </Card>
           ) : !sortedPosts || sortedPosts.length === 0 ? (
-            <div className="text-center">
-              <p className="text-gray-600">No posts available. Create one!</p>
-            </div>
+            <Card className="text-center p-5">
+              <CardContent>
+                <p className="text-muted-foreground">No posts available. Create one!</p>
+              </CardContent>
+            </Card>
           ) : (
             <div className="space-y-6">
               {sortedPosts.map((post) => (
-                <div
-                  key={post._id}
-                  className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition"
-                >
-                  <Link href={`/posts/${post._id}`}>
-                    <h2 className="text-xl font-semibold text-blue-600 hover:text-blue-800 transition">
-                      {post.title}
-                    </h2>
-                  </Link>
-                  {post.image && (
-                    <div className="mt-4">
+                <Card key={post._id} className="p-5 hover:shadow-lg transition-shadow">
+                  <CardHeader>
+                    <CardTitle>
+                      <Link
+                        href={`/posts/${post._id}`}
+                        className="text-xl font-semibold text-primary hover:text-primary/80 transition"
+                      >
+                        {post.title}
+                      </Link>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {post.image && (
                       <img
                         src={post.image}
                         alt={post.title}
                         width={300}
                         height={200}
-                        className="rounded-md object-cover"
+                        className="rounded-md object-cover mb-4"
                       />
+                    )}
+                    <p className="text-muted-foreground mb-4">{post.summary}</p>
+                    <div className="flex flex-wrap gap-2 mb-4">
+                      {post.tags.map((tag, index) => (
+                        <Badge key={index} variant="secondary">
+                          {tag}
+                        </Badge>
+                      ))}
                     </div>
-                  )}
-                  <p className="text-gray-600 mt-2">{post.summary}</p>
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    {post.tags.map((tag, index) => (
-                      <span
-                        key={index}
-                        className="bg-blue-100 text-blue-600 text-sm px-2 py-1 rounded"
-                      >
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
-                  <div className="mt-2 flex items-center gap-4">
-                    <div className="flex items-center gap-2">
-                      {post.authorImage && (
-                        <img
-                          src={post.authorImage}
-                          alt={post.authorName || 'Author'}
-                          width={32}
-                          height={32}
-                          className="rounded-full"
-                        />
-                      )}
-                      <p className="text-sm text-gray-700">
-                        By {post.authorName || 'Anonymous'}
+                    <div className="flex items-center gap-4">
+                      <div className="flex items-center gap-2">
+                        <Avatar>
+                          <AvatarImage
+                            src={post.authorImage}
+                            alt={post.authorName || 'Author'}
+                          />
+                          <AvatarFallback>
+                            {post.authorName?.charAt(0) || 'A'}
+                          </AvatarFallback>
+                        </Avatar>
+                        <p className="text-sm text-muted-foreground">
+                          By {post.authorName || 'Anonymous'}
+                        </p>
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        Posted on {new Date(post.createdAt).toLocaleDateString()}
                       </p>
                     </div>
-                    <p className="text-sm text-gray-500">
-                      Posted on {new Date(post.createdAt).toLocaleDateString()}
-                    </p>
-                  </div>
-                  <div className="mt-2 flex gap-4 text-sm text-gray-700">
-                    <span>Upvotes: {post.upvote}</span>
-                    <span>Downvotes: {post.downvote}</span>
-                    
-                  </div>
-                </div>
+                    <div className="mt-4 flex gap-4 text-sm text-muted-foreground">
+                      <span>UpVotes: {post.upvote}</span>
+                      <span>DownVotes: {post.downvote}</span>
+                    </div>
+                  </CardContent>
+                </Card>
               ))}
             </div>
           )}
         </main>
 
         {/* Right Sidebar - Advertisement */}
-        <aside className="hidden lg:block">
+        <aside className="hidden lg:block lg:col-span-1">
           <Add />
         </aside>
       </div>
