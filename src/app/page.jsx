@@ -1,45 +1,45 @@
-'use client';
-import { useGetPostsQuery } from '@/redux/features/postsApi';
-import { SignedIn, SignedOut, SignOutButton, useUser } from '@clerk/nextjs';
-import Link from 'next/link';
-import Navbar from '@/components/shared/navbar';
-import Add2 from '@/components/advertisements/Add2';
-import Add from '@/components/advertisements/Add';
-import { useState } from 'react';
-import { FaSearch, FaRegCommentDots, FaShareAlt } from 'react-icons/fa';
-import { LuArrowUpDown } from 'react-icons/lu';
-import { BiReset } from 'react-icons/bi';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import moment from 'moment';
+"use client";
+import { useGetPostsQuery } from "@/redux/features/postsApi";
+import { SignedIn, SignedOut, SignOutButton, useUser } from "@clerk/nextjs";
+import Link from "next/link";
+import Add2 from "@/components/advertisements/Add2";
+import Add from "@/components/advertisements/Add";
+import { useState } from "react";
+import { FaSearch, FaRegCommentDots, FaShareAlt } from "react-icons/fa";
+import { LuArrowUpDown } from "react-icons/lu";
+import { BiReset } from "react-icons/bi";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import moment from "moment";
 
 export default function Home() {
   const { data: posts, isLoading, error } = useGetPostsQuery();
   const { user } = useUser();
-  const [search, setSearch] = useState('');
-  const [sort, setSort] = useState('');
-   const [expanded, setExpanded] = useState(false);
+  const [search, setSearch] = useState("");
+  const [sort, setSort] = useState("");
+  const [expanded, setExpanded] = useState(false);
 
   const resetAll = () => {
-    setSearch('');
-    setSort('');
+    setSearch("");
+    setSort("");
   };
 
   // Filter posts by tags
   const filteredPosts = posts
     ? posts.filter((post) =>
         search
-          ? post.tags.some((tag) => tag.toLowerCase().includes(search.toLowerCase()))
+          ? post.tags.some((tag) =>
+              tag.toLowerCase().includes(search.toLowerCase())
+            )
           : true
       )
     : [];
 
   // Sort posts by popularity (net votes: upvote - downvote)
   const sortedPosts = [...filteredPosts].sort((a, b) => {
-    if (sort === 'popularity') {
+    if (sort === "popularity") {
       const netA = a.upvote - a.downvote;
       const netB = b.upvote - b.downvote;
       return netB - netA; // Descending order
@@ -76,8 +76,10 @@ export default function Home() {
                 </div>
                 <div className="flex gap-2">
                   <Button
-                    onClick={() => setSort(sort === 'popularity' ? '' : 'popularity')}
-                    variant={sort === 'popularity' ? 'default' : 'outline'}
+                    onClick={() =>
+                      setSort(sort === "popularity" ? "" : "popularity")
+                    }
+                    variant={sort === "popularity" ? "default" : "outline"}
                   >
                     <LuArrowUpDown className="mr-2 h-4 w-4" />
                     Popularity
@@ -92,21 +94,21 @@ export default function Home() {
                 <span className="text-muted-foreground">Popular tags:</span>
                 <Button
                   variant="link"
-                  onClick={() => setSearch('smartphone')}
+                  onClick={() => setSearch("smartphone")}
                   className="text-primary p-0 h-auto"
                 >
                   #smartphone
                 </Button>
                 <Button
                   variant="link"
-                  onClick={() => setSearch('macbook')}
+                  onClick={() => setSearch("macbook")}
                   className="text-primary p-0 h-auto"
                 >
                   #macBook
                 </Button>
                 <Button
                   variant="link"
-                  onClick={() => setSearch('bitcoin')}
+                  onClick={() => setSearch("bitcoin")}
                   className="text-primary p-0 h-auto"
                 >
                   #bitCoin
@@ -125,65 +127,72 @@ export default function Home() {
           ) : error ? (
             <Card className="text-center p-5">
               <CardContent>
-                <p className="text-destructive">Failed to load posts. Please try again later.</p>
+                <p className="text-destructive">
+                  Failed to load posts. Please try again later.
+                </p>
               </CardContent>
             </Card>
           ) : !sortedPosts || sortedPosts.length === 0 ? (
             <Card className="text-center p-5">
               <CardContent>
-                <p className="text-muted-foreground">No posts available. Create one!</p>
+                <p className="text-muted-foreground">
+                  No posts available. Create one!
+                </p>
               </CardContent>
             </Card>
           ) : (
             <div className="space-y-6">
               {sortedPosts.map((post) => {
-               
                 // Mock comment count since we don't have a comments API
                 const comments = 0; // Replace with actual comment count if available
 
                 return (
-                  <Link key={post._id} href={`/posts/${post._id}`}>
-                    <Card className="bg-white mb-5 dark:bg-[#20293d] dark:text-white shadow-lg rounded-lg p-5 hover:shadow-xl transition-shadow">
+                  
+                    <Card key={post._id} className="bg-white mb-5 dark:bg-[#20293d] dark:text-white shadow-lg rounded-lg p-5 hover:shadow-xl transition-shadow">
                       <CardContent className="p-0">
                         {/* Author Section */}
                         <div className="flex items-center space-x-3">
                           <Avatar>
                             <AvatarImage
                               src={post.authorImage}
-                              alt={post.authorName || 'Author'}
+                              alt={post.authorName || "Author"}
                             />
                             <AvatarFallback>
-                              {post.authorName?.charAt(0) || 'A'}
+                              {post.authorName?.charAt(0) || "A"}
                             </AvatarFallback>
                           </Avatar>
                           <div>
-                            <h3 className="font-semibold">{post.authorName || 'Anonymous'}</h3>
+                            <h3 className="font-semibold">
+                              {post.authorName || "Anonymous"}
+                            </h3>
                             <p className="text-gray-500 dark:text-gray-300 text-sm">
-                              {post.createdAt && moment(post.createdAt).fromNow()}
+                              {post.createdAt &&
+                                moment(post.createdAt).fromNow()}
                             </p>
                           </div>
                         </div>
 
                         {/* Post Content */}
-                        <p className="mt-3 text-xl font-semibold">{post.title}</p>
+                        <p className="mt-3 text-xl font-semibold">
+                          {post.title}
+                        </p>
                         <p className="mt-3 text-gray-700 dark:text-white">
-                          {expanded ? post.summary : `${post.summary.slice(0, 200)}...`}
+                          {expanded
+                            ? post.content
+                            : `${post.content.slice(0, 300)}...`}
+                           {
+                            post.content.length > 300 && (
+                             <Link key={post._id} href={`/posts/${post._id}`} className="text-blue-500 hover:underline ml-2">
+                              
+                              Read More
+                              </Link>
+                            )
+                           }
                           {post.tags.map((tag, index) => (
                             <span key={index} className="ml-2 font-semibold">
                               #{tag}
                             </span>
                           ))}
-                          {!expanded && post.summary.length > 200 && (
-                            <button
-                              onClick={(e) => {
-                                e.preventDefault();
-                                setExpanded(true);
-                              }}
-                              className="text-blue-500 ml-2"
-                            >
-                              Read More
-                            </button>
-                          )}
                         </p>
 
                         {/* Post Image */}
@@ -235,7 +244,6 @@ export default function Home() {
                         </div>
                       </CardContent>
                     </Card>
-                  </Link>
                 );
               })}
             </div>

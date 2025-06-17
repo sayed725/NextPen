@@ -1,5 +1,4 @@
 'use client';
-import { useGetPostsQuery } from '@/redux/features/postsApi';
 import { SignedIn, SignedOut, SignOutButton, useUser } from '@clerk/nextjs';
 import Link from 'next/link';
 import { useState } from 'react';
