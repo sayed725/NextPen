@@ -36,8 +36,8 @@ export async function POST(request) {
       authorEmail: authorEmail || '',
       image: image || '',
       createdAt: new Date(),
-      upvote: 0,
-      downvote: 0,
+      upVote: 0,
+      downVote: 0,
       comments: [],
     };
 
