@@ -18,6 +18,31 @@ export async function GET(request, { params }) {
   }
 }
 
+
+export async function PATCH(request, { params }) {
+  try {
+    const { userId } = getAuth(request);
+    if (!userId) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const { id } = params;
+    const { title, content, tags, summary } = await request.json();
+    const db = await connectDB();
+    const result = await db.collection('posts').updateOne(
+      { _id: new ObjectId(id), authorId: userId },
+      { $set: { title, content, tags: tags || [], summary: summary || '' } }
+    );
+
+    if (result.matchedCount === 0) {
+      return NextResponse.json({ error: 'Post not found or unauthorized' }, { status: 404 });
+    }
+    return NextResponse.json({ message: 'Post updated' });
+  } catch (error) {
+    return NextResponse.json({ error: 'Failed to update post' }, { status: 500 });
+  }
+}
+
 export async function PUT(request, { params }) {
   try {
     const { userId } = getAuth(request);
