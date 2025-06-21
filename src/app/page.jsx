@@ -1,5 +1,5 @@
 "use client";
-import { useGetPostsQuery } from "@/redux/features/postsApi";
+import { useGetPostsQuery, useUpvotePostMutation, useDownvotePostMutation } from "@/redux/features/postsApi";
 import { SignedIn, SignedOut, SignOutButton, useUser } from "@clerk/nextjs";
 import Link from "next/link";
 import Add2 from "@/components/advertisements/Add2";
@@ -13,10 +13,14 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import moment from "moment";
+import toast from "react-hot-toast";
+
 
 export default function Home() {
   const { data: posts, isLoading, error } = useGetPostsQuery();
   const { user } = useUser();
+  const [upvotePost, { isLoading: isUpvoting }] = useUpvotePostMutation();
+  const [downvotePost, { isLoading: isDownvoting }] = useDownvotePostMutation();
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState("");
   const [expanded, setExpanded] = useState(false);
@@ -40,12 +44,32 @@ export default function Home() {
   // Sort posts by popularity (net votes: upvote - downvote)
   const sortedPosts = [...filteredPosts].sort((a, b) => {
     if (sort === "popularity") {
-      const netA = a.upvote - a.downvote;
-      const netB = b.upvote - b.downvote;
+      const netA = (a.upvote || 0) - (a.downvote || 0);
+      const netB = (b.upvote || 0) - (b.downvote || 0);
       return netB - netA; // Descending order
     }
     return 0; // Default: no sorting
   });
+
+  // Handle upvote
+  const handleUpvote = async (postId) => {
+    try {
+      await upvotePost(postId).unwrap();
+      toast.success("Post upvoted successfully!");
+    } catch (error) {
+      toast.error(error?.data?.error || "Failed to upvote post");
+    }
+  };
+
+  // Handle downvote
+  const handleDownvote = async (postId) => {
+    try {
+      await downvotePost(postId).unwrap();
+      toast.success("Post downvoted successfully!");
+    } catch (error) {
+      toast.error(error?.data?.error || "Failed to downvote post");
+    }
+  };
 
   return (
     <div className="min-h-screen mx-auto">
@@ -147,103 +171,109 @@ export default function Home() {
                 const comments = 0; // Replace with actual comment count if available
 
                 return (
-                  
-                    <Card key={post._id} className="bg-white mb-5 dark:bg-[#20293d] dark:text-white shadow-lg rounded-lg p-5 hover:shadow-xl transition-shadow">
-                      <CardContent className="p-0">
-                        {/* Author Section */}
-                        <div className="flex items-center space-x-3">
-                          <Avatar>
-                            <AvatarImage
-                              src={post.authorImage}
-                              alt={post.authorName || "Author"}
-                            />
-                            <AvatarFallback>
-                              {post.authorName?.charAt(0) || "A"}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div>
-                            <h3 className="font-semibold">
-                              {post.authorName || "Anonymous"}
-                            </h3>
-                            <p className="text-gray-500 dark:text-gray-300 text-sm">
-                              {post.createdAt &&
-                                moment(post.createdAt).fromNow()}
-                            </p>
-                          </div>
+                  <Card
+                    key={post._id}
+                    className="bg-white mb-5 dark:bg-[#20293d] dark:text-white shadow-lg rounded-lg p-5 hover:shadow-xl transition-shadow"
+                  >
+                    <CardContent className="p-0">
+                      {/* Author Section */}
+                      <div className="flex items-center space-x-3">
+                        <Avatar>
+                          <AvatarImage
+                            src={post.authorImage}
+                            alt={post.authorName || "Author"}
+                          />
+                          <AvatarFallback>
+                            {post.authorName?.charAt(0) || "A"}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <h3 className="font-semibold">
+                            {post.authorName || "Anonymous"}
+                          </h3>
+                          <p className="text-gray-500 dark:text-gray-300 text-sm">
+                            {post.createdAt &&
+                              moment(post.createdAt).fromNow()}
+                          </p>
                         </div>
+                      </div>
 
-                        {/* Post Content */}
-                        <p className="mt-3 text-xl font-semibold">
-                          {post.title}
-                        </p>
-                        <p className="mt-3 text-gray-700 dark:text-white">
-                          {expanded
-                            ? post.content
-                            : `${post.content.slice(0, 300)}...`}
-                           {
-                            post.content.length > 300 && (
-                             <Link key={post._id} href={`/posts/${post._id}`} className="text-blue-500 hover:underline ml-2">
-                              
-                              Read More
-                              </Link>
-                            )
-                           }
-                          {post.tags.map((tag, index) => (
-                            <span key={index} className="ml-2 font-semibold">
-                              #{tag}
-                            </span>
-                          ))}
-                        </p>
-
-                        {/* Post Image */}
-                        {post.image && (
-                          <div className="mt-4">
-                            <img
-                              src={post.image}
-                              alt={post.title}
-                              className="w-full h-[350px] object-cover rounded-lg"
-                            />
-                          </div>
+                      {/* Post Content */}
+                      <p className="mt-3 text-xl font-semibold">
+                        {post.title}
+                      </p>
+                      <p className="mt-3 text-gray-700 dark:text-white">
+                        {expanded
+                          ? post.content
+                          : `${post.content.slice(0, 300)}...`}
+                        {post.content.length > 300 && (
+                          <Link
+                            href={`/posts/${post._id}`}
+                            className="text-blue-500 hover:underline ml-2"
+                          >
+                            Read More
+                          </Link>
                         )}
+                        {post.tags.map((tag, index) => (
+                          <span key={index} className="ml-2 font-semibold">
+                            #{tag}
+                          </span>
+                        ))}
+                      </p>
 
-                        {/* Likes, Comments, and Share */}
-                        <div className="flex items-center justify-between mt-4 text-gray-600 dark:text-gray-400">
-                          <div className="flex items-center space-x-2">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="flex gap-2 dark:bg-[#20293d] dark:text-white dark:hover:text-blue-500 hover:text-blue-500"
-                            >
-                              <span>UpVote · {post.upvote}</span>
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="flex gap-2 dark:bg-[#20293d] dark:text-white dark:hover:text-blue-500 hover:text-blue-500"
-                            >
-                              <span>DownVote · {post.downvote}</span>
-                            </Button>
-                          </div>
-                          <div className="flex items-center space-x-4">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="flex items-center space-x-1 dark:hover:text-blue-500 hover:text-blue-500"
-                            >
-                              <FaRegCommentDots className="text-xl" />
-                              <span>{comments}</span>
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="flex items-center space-x-1 dark:hover:text-blue-500 hover:text-blue-500"
-                            >
-                              <FaShareAlt className="text-xl" />
-                            </Button>
-                          </div>
+                      {/* Post Image */}
+                      {post.image && (
+                        <div className="mt-4">
+                          <img
+                            src={post.image}
+                            alt={post.title}
+                            className="w-full h-[350px] object-cover rounded-lg"
+                          />
                         </div>
-                      </CardContent>
-                    </Card>
+                      )}
+
+                      {/* Likes, Comments, and Share */}
+                      <div className="flex items-center justify-between mt-4 text-gray-600 dark:text-gray-400">
+                        <div className="flex items-center space-x-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleUpvote(post._id)}
+                            disabled={isUpvoting || !user} // Disable if upvoting or user not signed in
+                            className="flex gap-2 dark:bg-[#20293d] dark:text-white dark:hover:text-blue-500 hover:text-blue-500"
+                          >
+                            <span>UpVote · {post.upVote || 0}</span>
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleDownvote(post._id)}
+                            disabled={isDownvoting || !user} // Disable if downvoting or user not signed in
+                            className="flex gap-2 dark:bg-[#20293d] dark:text-white dark:hover:text-blue-500 hover:text-blue-500"
+                          >
+                            <span>DownVote · {post.downVote || 0}</span>
+                          </Button>
+                        </div>
+                        <div className="flex items-center space-x-4">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="flex items-center space-x-1 dark:hover:text-blue-500 hover:text-blue-500"
+                          >
+                            <FaRegCommentDots className="text-xl" />
+                            <span>{comments}</span>
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="flex items-center space-x-1 dark:hover:text-blue-500 hover:text-blue-500"
+                          >
+                            <FaShareAlt className="text-xl" />
+                          </Button>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
                 );
               })}
             </div>

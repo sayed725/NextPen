@@ -8,6 +8,7 @@ import { store } from '@/redux/store';
 import Navbar from "@/components/shared/navbar";
 import Footer from "@/components/shared/footer";
 // import '@/styles/globals.css';
+import { Toaster } from "react-hot-toast";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -30,6 +31,7 @@ export default function RootLayout({ children }) {
       <Provider store={store}>
         <html lang="en">
          <body className="bg-gray-100">
+           <Toaster />
             <Navbar />
             <main className="max-w-7xl mx-auto">{children}</main>
             <Footer />

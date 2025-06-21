@@ -1,4 +1,3 @@
-// redux/features/postsApi.js
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 
 export const postsApi = createApi({
@@ -48,6 +47,20 @@ export const postsApi = createApi({
       }),
       invalidatesTags: ['Posts'],
     }),
+    upvotePost: builder.mutation({
+      query: (id) => ({
+        url: `/posts/${id}/upvote`,
+        method: 'POST',
+      }),
+      invalidatesTags: ['Posts'],
+    }),
+    downvotePost: builder.mutation({
+      query: (id) => ({
+        url: `/posts/${id}/downvote`,
+        method: 'POST',
+      }),
+      invalidatesTags: ['Posts'],
+    }),
   }),
 });
 
@@ -58,4 +71,6 @@ export const {
   useUpdatePostMutation,
   useDeletePostMutation,
   useAddCommentMutation,
+  useUpvotePostMutation,
+  useDownvotePostMutation,
 } = postsApi;
